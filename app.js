@@ -1,6 +1,6 @@
 /**
  * app.js - Consulta de Comprador
- * Lógica principal: carregamento do XLSX, busca, filtro e renderização.
+ * Adaptado para a nova estrutura da planilha.
  */
 
 // ===== ESTADO GLOBAL =====
@@ -86,14 +86,13 @@ async function loadDatabase() {
         const firstSheet = workbook.SheetNames[0];
         const sheet = workbook.Sheets[firstSheet];
 
-        // Converte para JSON e limpa os nomes das colunas (remove espaços extras)
         let rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
         
+        // Limpa espaços extras nos nomes das colunas
         rawData = rawData.map(row => {
             const newRow = {};
             for (const key in row) {
                 if (row.hasOwnProperty(key)) {
-                    // Remove espaços em branco do início e fim do nome da coluna
                     newRow[key.trim()] = row[key];
                 }
             }
@@ -104,20 +103,15 @@ async function loadDatabase() {
             throw new Error('A planilha está vazia.');
         }
 
+        // Mapeamento EXATO para as novas colunas
         database = rawData.map(row => ({
-            codigoEmpresa: row['Código Empresa'] ?? row['Codigo Empresa'] ?? '',
-            empresa: row['Empresa'] ?? '', // Agora vai ler corretamente mesmo com espaços
-            produto: row['Produto'] ?? '',
             codigoProduto: row['Código Produto'] ?? row['Codigo Produto'] ?? '',
-            preco: row['Preço Vda Unitário'] ?? row['Preco Vda Unitario'] ?? '',
-            categoria: row['CATEGORIA'] ?? '',
-            grupo: row['GRUPO'] ?? '',
-            subgrupo: row['SUBGRUPO'] ?? '',
-            cadGrupo: row['CAD GRUPO'] ?? '',
-            statusVenda: row['STATUS DE VENDA'] ?? '',
-            cadLojas: row['CAD LOJAS'] ?? '',
-            tipo: row['TIPO'] ?? '',
-            comprador: row['COMPRADOR'] ?? ''
+            produto: row['Produto'] ?? '',
+            empresa: row['EMPRESA'] ?? row['Empresa'] ?? '', // Aceita maiúsculo ou minúsculo
+            tipo: row['TIPO'] ?? row['Tipo'] ?? '',
+            categoria: row['CATEGORIA'] ?? row['Categoria'] ?? '',
+            grupo: row['GRUPO'] ?? row['Grupo'] ?? '',
+            comprador: row['COMPRADOR'] ?? row['Comprador'] ?? ''
         }));
 
         isDataLoaded = true;
@@ -199,15 +193,14 @@ function renderCards(results) {
         card.className = 'result-card';
 
         const empresaDisplay = displayStr(row.empresa);
-        const codigoEmpresaDisplay = displayStr(row.codigoEmpresa);
+        const codigoEmpresaDisplay = displayStr(row.codigoProduto);
         const produtoDisplay = displayStr(row.produto);
-        const subgrupoDisplay = displayStr(row.subgrupo);
         const grupoDisplay = displayStr(row.grupo);
         const categoriaDisplay = displayStr(row.categoria);
         const tipoDisplay = displayStr(row.tipo);
         const compradorDisplay = displayStr(row.comprador);
 
-        // Novo Layout com Empresa e Produto em destaque
+        // Layout atualizado para a nova estrutura de dados
         card.innerHTML = `
             <div class="card-header">
                 <div class="buyer-icon">
@@ -224,12 +217,11 @@ function renderCards(results) {
                     <i data-lucide="building-2"></i> Empresa
                 </div>
                 <div class="highlight-value">${escapeHtml(empresaDisplay)}</div>
-                <div class="highlight-sub">Código da Empresa: ${escapeHtml(codigoEmpresaDisplay)}</div>
             </div>
 
             <div class="highlight-box" style="border-left-color: #10b981;">
                 <div class="highlight-label" style="color: #047857;">
-                    <i data-lucide="package"></i> Produto
+                    <i data-lucide="package"></i> Produto (Cód: ${escapeHtml(codigoEmpresaDisplay)})
                 </div>
                 <div class="highlight-value">${escapeHtml(produtoDisplay)}</div>
             </div>
@@ -243,10 +235,6 @@ function renderCards(results) {
                 <div class="info-item">
                     <span class="info-label">Grupo</span>
                     <span class="info-value">${escapeHtml(grupoDisplay)}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Subgrupo</span>
-                    <span class="info-value ${subgrupoDisplay === '—' ? 'muted' : ''}">${escapeHtml(subgrupoDisplay)}</span>
                 </div>
             </div>
         `;
@@ -262,25 +250,22 @@ function populateCompanyFilter(results) {
     const empresasMap = new Map();
 
     results.forEach(row => {
-        const key = normalize(row.empresa) + '|' + normalize(row.codigoEmpresa);
+        const key = normalize(row.empresa);
         if (!empresasMap.has(key)) {
-            empresasMap.set(key, {
-                empresa: row.empresa,
-                codigo: row.codigoEmpresa
-            });
+            empresasMap.set(key, row.empresa);
         }
     });
 
     els.companyFilter.innerHTML = '<option value="">Todas as empresas</option>';
 
     const sorted = Array.from(empresasMap.values()).sort((a, b) =>
-        String(a.empresa).localeCompare(String(b.empresa), 'pt-BR')
+        String(a).localeCompare(String(b), 'pt-BR')
     );
 
-    sorted.forEach(item => {
+    sorted.forEach(empresa => {
         const opt = document.createElement('option');
-        opt.value = `${normalize(item.empresa)}|${normalize(item.codigo)}`;
-        opt.textContent = `${displayStr(item.empresa)} (#${displayStr(item.codigo)})`;
+        opt.value = normalize(empresa);
+        opt.textContent = displayStr(empresa);
         els.companyFilter.appendChild(opt);
     });
 }
@@ -294,11 +279,8 @@ function applyCompanyFilter() {
         return;
     }
 
-    const [empresaNorm, codigoNorm] = filterVal.split('|');
-
     const filtered = currentResults.filter(row => {
-        return normalize(row.empresa) === empresaNorm &&
-               normalize(row.codigoEmpresa) === codigoNorm;
+        return normalize(row.empresa) === filterVal;
     });
 
     renderCards(filtered);
