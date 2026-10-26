@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Comprador | Cluster de Produtos</title>
+    <!-- Fonte Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-icon">
+                    <i data-lucide="users"></i>
+                </div>
+                <div>
+                    <h1>Consulta de Comprador</h1>
+                    <p class="subtitle">Cluster de Produtos</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+
+            <!-- Search Section -->
+            <section class="search-section">
+                <div class="search-box">
+                    <div class="input-wrapper">
+                        <i data-lucide="search" class="input-icon"></i>
+                        <input 
+                            type="text" 
+                            id="productCodeInput" 
+                            placeholder="Digite o código do produto..." 
+                            autocomplete="off"
+                            aria-label="Código do Produto"
+                        >
+                    </div>
+                    <button id="searchButton" class="btn-primary">
+                        <i data-lucide="search"></i>
+                        Buscar
+                    </button>
+                </div>
+
+                <!-- Histórico de Buscas -->
+                <div id="historyContainer" class="history-container hidden">
+                    <span class="history-label">Buscas recentes:</span>
+                    <div id="historyChips" class="history-chips"></div>
+                </div>
+            </section>
+
+            <!-- Filtro por Empresa (aparece após busca) -->
+            <section id="filterSection" class="filter-section hidden">
+                <div class="filter-wrapper">
+                    <label for="companyFilter">
+                        <i data-lucide="filter"></i>
+                        Filtrar por Empresa:
+                    </label>
+                    <select id="companyFilter">
+                        <option value="">Todas as empresas</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>Carregando base de dados...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="error-state hidden">
+                <i data-lucide="alert-circle"></i>
+                <h2>Erro ao carregar dados</h2>
+                <p id="errorMessage"></p>
+                <button id="retryButton" class="btn-secondary">
+                    <i data-lucide="refresh-cw"></i>
+                    Tentar novamente
+                </button>
+            </div>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section hidden">
+                <div class="results-header">
+                    <h2 id="resultsCount">0 resultados encontrados</h2>
+                </div>
+                <div id="resultsGrid" class="results-grid"></div>
+            </section>
+
+            <!-- No Results State -->
+            <div id="noResults" class="no-results hidden">
+                <i data-lucide="search-x"></i>
+                <h2>Nenhum resultado encontrado</h2>
+                <p id="noResultsMessage">Nenhum comprador encontrado para o código informado.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Consulta de Comprador &copy; <span id="currentYear"></span></p>
+            <p class="footer-update" id="lastUpdate">Data da última atualização: --</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
