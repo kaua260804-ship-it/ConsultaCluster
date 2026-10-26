@@ -4,9 +4,9 @@
  */
 
 // ===== ESTADO GLOBAL =====
-let database = [];           // Array com todos os registros parseados
-let isDataLoaded = false;    // Flag de controle
-let currentResults = [];     // Resultados da busca atual
+let database = [];           
+let isDataLoaded = false;    
+let currentResults = [];     
 const STORAGE_KEY = 'cluster_search_history';
 const MAX_HISTORY = 5;
 
@@ -33,13 +33,9 @@ const els = {
 
 // ===== INICIALIZAÇÃO =====
 document.addEventListener('DOMContentLoaded', () => {
-    // Ícones
     if (window.lucide) lucide.createIcons();
-
-    // Ano no footer
     els.currentYear.textContent = new Date().getFullYear();
 
-    // Eventos
     els.searchBtn.addEventListener('click', handleSearch);
     els.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleSearch();
@@ -47,20 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
     els.retryBtn.addEventListener('click', loadDatabase);
     els.companyFilter.addEventListener('change', applyCompanyFilter);
 
-    // Carrega histórico
     renderHistory();
-
-    // Carrega base
     loadDatabase();
 });
 
 // ===== NORMALIZAÇÃO =====
-/**
- * Normaliza strings para comparação:
- * - trim
- * - minúsculas
- * - remove acentos
- */
 function normalize(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -70,20 +57,12 @@ function normalize(str) {
         .replace(/[\u0300-\u036f]/g, '');
 }
 
-/**
- * Normaliza código de produto removendo zeros à esquerda.
- * Ex: "024553" -> "24553"
- */
 function normalizeCode(code) {
     if (code === null || code === undefined) return '';
     const s = String(code).trim();
-    // Remove zeros à esquerda, mas mantém pelo menos um dígito
     return s.replace(/^0+/, '') || '0';
 }
 
-/**
- * Formata string para exibição (trim, sem alterar caixa).
- */
 function displayStr(val) {
     if (val === null || val === undefined) return '—';
     const s = String(val).trim();
@@ -99,27 +78,35 @@ async function loadDatabase() {
         const response = await fetch('CLUSTER.xlsx', { cache: 'no-store' });
 
         if (!response.ok) {
-            throw new Error(`Arquivo CLUSTER.xlsx não encontrado (HTTP ${response.status}). Verifique se o arquivo está na raiz do repositório.`);
+            throw new Error(`Arquivo CLUSTER.xlsx não encontrado (HTTP ${response.status}).`);
         }
 
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-
-        // Pega a primeira aba
         const firstSheet = workbook.SheetNames[0];
         const sheet = workbook.Sheets[firstSheet];
 
-        // Converte para JSON
-        const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        // Converte para JSON e limpa os nomes das colunas (remove espaços extras)
+        let rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        
+        rawData = rawData.map(row => {
+            const newRow = {};
+            for (const key in row) {
+                if (row.hasOwnProperty(key)) {
+                    // Remove espaços em branco do início e fim do nome da coluna
+                    newRow[key.trim()] = row[key];
+                }
+            }
+            return newRow;
+        });
 
         if (!rawData || rawData.length === 0) {
-            throw new Error('A planilha está vazia ou não contém dados válidos.');
+            throw new Error('A planilha está vazia.');
         }
 
-        // Mapeia colunas para chaves internas (com fallback para variações)
         database = rawData.map(row => ({
             codigoEmpresa: row['Código Empresa'] ?? row['Codigo Empresa'] ?? '',
-            empresa: row['Empresa'] ?? '',
+            empresa: row['Empresa'] ?? '', // Agora vai ler corretamente mesmo com espaços
             produto: row['Produto'] ?? '',
             codigoProduto: row['Código Produto'] ?? row['Codigo Produto'] ?? '',
             preco: row['Preço Vda Unitário'] ?? row['Preco Vda Unitario'] ?? '',
@@ -134,32 +121,22 @@ async function loadDatabase() {
         }));
 
         isDataLoaded = true;
-
-        // Data de atualização (do arquivo)
         updateLastUpdateDate();
-
         hideLoading();
         els.input.focus();
 
     } catch (err) {
         console.error('Erro ao carregar base:', err);
         hideLoading();
-        showError(err.message || 'Não foi possível carregar a base de dados. Verifique se o arquivo CLUSTER.xlsx está na raiz do repositório.');
+        showError(err.message || 'Não foi possível carregar a base de dados.');
     }
 }
 
-/**
- * Atualiza a data de última atualização no footer.
- * Usa a data atual do carregamento como referência.
- */
 function updateLastUpdateDate() {
     const now = new Date();
     const formatted = now.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
     });
     els.lastUpdate.textContent = `Base carregada em: ${formatted}`;
 }
@@ -167,12 +144,11 @@ function updateLastUpdateDate() {
 // ===== BUSCA =====
 function handleSearch() {
     if (!isDataLoaded) {
-        showError('A base de dados ainda não foi carregada. Aguarde ou clique em "Tentar novamente".');
+        showError('A base de dados ainda não foi carregada.');
         return;
     }
 
     const rawCode = els.input.value.trim();
-
     if (!rawCode) {
         els.input.focus();
         return;
@@ -180,53 +156,38 @@ function handleSearch() {
 
     const searchCode = normalizeCode(rawCode);
 
-    // Filtra todos os registros com código correspondente
     const results = database.filter(row => {
         return normalizeCode(row.codigoProduto) === searchCode;
     });
 
-    // Salva no histórico
     saveHistory(rawCode);
-
-    // Exibe resultados
     renderResults(results, rawCode);
 }
 
 // ===== RENDERIZAÇÃO DE RESULTADOS =====
 function renderResults(results, searchedCode) {
-    // Esconde estados anteriores
     els.noResults.classList.add('hidden');
     els.resultsSection.classList.add('hidden');
     els.filterSection.classList.add('hidden');
-
-    // Remove erro de busca anterior, se houver
     hideError();
 
     if (results.length === 0) {
-        els.noResultsMessage.textContent = `Nenhum resultado encontrado para o código "${searchedCode}". Verifique se o código está correto.`;
+        els.noResultsMessage.textContent = `Nenhum resultado encontrado para o código "${searchedCode}".`;
         els.noResults.classList.remove('hidden');
         currentResults = [];
         return;
     }
 
-    // Armazena resultados atuais
     currentResults = results;
-
-    // Popula filtro de empresa
     populateCompanyFilter(results);
-
-    // Atualiza contador
+    
     const count = results.length;
     els.resultsCount.textContent = `${count} resultado${count > 1 ? 's' : ''} encontrado${count > 1 ? 's' : ''}`;
 
-    // Renderiza cards
     renderCards(results);
 
-    // Mostra seção
     els.resultsSection.classList.remove('hidden');
     els.filterSection.classList.remove('hidden');
-
-    // Scroll suave para resultados
     els.resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -237,9 +198,6 @@ function renderCards(results) {
         const card = document.createElement('div');
         card.className = 'result-card';
 
-        const tipoBadgeClass = 'badge badge-tipo';
-        const categoriaBadgeClass = 'badge badge-categoria';
-
         const empresaDisplay = displayStr(row.empresa);
         const codigoEmpresaDisplay = displayStr(row.codigoEmpresa);
         const produtoDisplay = displayStr(row.produto);
@@ -249,20 +207,36 @@ function renderCards(results) {
         const tipoDisplay = displayStr(row.tipo);
         const compradorDisplay = displayStr(row.comprador);
 
+        // Novo Layout com Empresa e Produto em destaque
         card.innerHTML = `
             <div class="card-header">
                 <div class="buyer-icon">
                     <i data-lucide="user"></i>
                 </div>
                 <div class="buyer-info">
-                    <div class="label">Comprador</div>
+                    <div class="label">Comprador Responsável</div>
                     <div class="buyer-name">${escapeHtml(compradorDisplay)}</div>
                 </div>
             </div>
 
+            <div class="highlight-box">
+                <div class="highlight-label">
+                    <i data-lucide="building-2"></i> Empresa
+                </div>
+                <div class="highlight-value">${escapeHtml(empresaDisplay)}</div>
+                <div class="highlight-sub">Código da Empresa: ${escapeHtml(codigoEmpresaDisplay)}</div>
+            </div>
+
+            <div class="highlight-box" style="border-left-color: #10b981;">
+                <div class="highlight-label" style="color: #047857;">
+                    <i data-lucide="package"></i> Produto
+                </div>
+                <div class="highlight-value">${escapeHtml(produtoDisplay)}</div>
+            </div>
+
             <div class="badges-row">
-                <span class="${tipoBadgeClass}">${escapeHtml(tipoDisplay)}</span>
-                <span class="${categoriaBadgeClass}">${escapeHtml(categoriaDisplay)}</span>
+                <span class="badge badge-tipo">${escapeHtml(tipoDisplay)}</span>
+                <span class="badge badge-categoria">${escapeHtml(categoriaDisplay)}</span>
             </div>
 
             <div class="info-grid">
@@ -274,32 +248,17 @@ function renderCards(results) {
                     <span class="info-label">Subgrupo</span>
                     <span class="info-value ${subgrupoDisplay === '—' ? 'muted' : ''}">${escapeHtml(subgrupoDisplay)}</span>
                 </div>
-                <div class="info-item full-width">
-                    <span class="info-label">Empresa</span>
-                    <span class="company-tag">
-                        <i data-lucide="building-2"></i>
-                        ${escapeHtml(empresaDisplay)}
-                        <span class="company-code">#${escapeHtml(codigoEmpresaDisplay)}</span>
-                    </span>
-                </div>
-            </div>
-
-            <div class="product-box">
-                <div class="product-label">Produto</div>
-                <div class="product-name">${escapeHtml(produtoDisplay)}</div>
             </div>
         `;
 
         els.resultsGrid.appendChild(card);
     });
 
-    // Recria ícones
     if (window.lucide) lucide.createIcons();
 }
 
 // ===== FILTRO POR EMPRESA =====
 function populateCompanyFilter(results) {
-    // Coleta empresas únicas
     const empresasMap = new Map();
 
     results.forEach(row => {
@@ -312,10 +271,8 @@ function populateCompanyFilter(results) {
         }
     });
 
-    // Limpa select
     els.companyFilter.innerHTML = '<option value="">Todas as empresas</option>';
 
-    // Ordena alfabeticamente
     const sorted = Array.from(empresasMap.values()).sort((a, b) =>
         String(a.empresa).localeCompare(String(b.empresa), 'pt-BR')
     );
@@ -332,7 +289,6 @@ function applyCompanyFilter() {
     const filterVal = els.companyFilter.value;
 
     if (!filterVal) {
-        // Mostra todos
         renderCards(currentResults);
         updateCount(currentResults.length);
         return;
@@ -356,23 +312,13 @@ function updateCount(n) {
 // ===== HISTÓRICO =====
 function saveHistory(code) {
     let history = getHistory();
-
-    // Remove duplicatas (case-insensitive)
     history = history.filter(item => normalizeCode(item) !== normalizeCode(code));
-
-    // Adiciona no início
     history.unshift(code);
-
-    // Limita
     history = history.slice(0, MAX_HISTORY);
 
-    // Salva
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-    } catch (e) {
-        // localStorage indisponível (modo privado)
-    }
-
+    } catch (e) {}
     renderHistory();
 }
 
@@ -387,7 +333,6 @@ function getHistory() {
 
 function renderHistory() {
     const history = getHistory();
-
     if (history.length === 0) {
         els.historyContainer.classList.add('hidden');
         return;
@@ -408,8 +353,6 @@ function renderHistory() {
     });
 
     els.historyContainer.classList.remove('hidden');
-
-    // Recria ícones
     if (window.lucide) lucide.createIcons();
 }
 
@@ -436,9 +379,6 @@ function hideError() {
 }
 
 // ===== SEGURANÇA =====
-/**
- * Escapa HTML para evitar injeção.
- */
 function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
