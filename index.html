@@ -4,19 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Comprador | Cluster de Produtos</title>
-    <!-- Fonte Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Ícones Lucide -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- SheetJS -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -31,11 +27,9 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="main">
         <div class="container">
 
-            <!-- Search Section -->
             <section class="search-section">
                 <div class="search-box">
                     <div class="input-wrapper">
@@ -54,14 +48,12 @@
                     </button>
                 </div>
 
-                <!-- Histórico de Buscas -->
                 <div id="historyContainer" class="history-container hidden">
                     <span class="history-label">Buscas recentes:</span>
                     <div id="historyChips" class="history-chips"></div>
                 </div>
             </section>
 
-            <!-- Filtro por Empresa (aparece após busca) -->
             <section id="filterSection" class="filter-section hidden">
                 <div class="filter-wrapper">
                     <label for="companyFilter">
@@ -74,13 +66,11 @@
                 </div>
             </section>
 
-            <!-- Loading State -->
             <div id="loadingState" class="loading-state">
                 <div class="spinner"></div>
                 <p>Carregando base de dados...</p>
             </div>
 
-            <!-- Error State -->
             <div id="errorState" class="error-state hidden">
                 <i data-lucide="alert-circle"></i>
                 <h2>Erro ao carregar dados</h2>
@@ -91,7 +81,6 @@
                 </button>
             </div>
 
-            <!-- Results Section -->
             <section id="resultsSection" class="results-section hidden">
                 <div class="results-header">
                     <h2 id="resultsCount">0 resultados encontrados</h2>
@@ -99,7 +88,6 @@
                 <div id="resultsGrid" class="results-grid"></div>
             </section>
 
-            <!-- No Results State -->
             <div id="noResults" class="no-results hidden">
                 <i data-lucide="search-x"></i>
                 <h2>Nenhum resultado encontrado</h2>
@@ -109,7 +97,6 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <p>Consulta de Comprador &copy; <span id="currentYear"></span></p>
