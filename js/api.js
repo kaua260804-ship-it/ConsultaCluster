@@ -16,6 +16,8 @@ async function loadDatabase() {
 
         if (!abaBaseNome || !abaArvoreNome) throw new Error('O arquivo deve conter as abas "BASE" e "ARVORE".');
 
+        // Limpa o Map antes de carregar
+        AppState.arvore.clear();
         const arvoreData = XLSX.utils.sheet_to_json(workbook.Sheets[abaArvoreNome], { defval: '' });
         
         arvoreData.forEach(row => {
@@ -28,7 +30,8 @@ async function loadDatabase() {
                     categoria: cleanRow['CATEGORIA'] || '',
                     grupo: cleanRow['GRUPO'] || '',
                     subgrupo: cleanRow['SUBGRUPO'] || '',
-                    comprador: cleanRow['COMPRADOR'] || ''
+                    comprador: cleanRow['COMPRADOR'] || '',
+                    tipoOriginal: cleanRow['TIPO'] || '' // Se houver coluna tipo na árvore
                 });
             }
         });
@@ -70,7 +73,7 @@ async function sendDataToSheets() {
     const autorizacao = DOM.modalAutorizacao.value;
 
     if (!codigo || !tipoSelecionado || !autorizacao) {
-        showModalMessage('Selecione o TIPO e a AUTORIZAÇÃO.', 'error');
+        showModalMessage('Preencha o código, o TIPO e a AUTORIZAÇÃO.', 'error');
         return;
     }
 
@@ -89,7 +92,7 @@ async function sendDataToSheets() {
     DOM.saveClusterBtn.disabled = true;
     DOM.saveClusterBtn.textContent = 'Enviando...';
 
-    // O Apps Script vai receber 1 requisição para cada empresa
+    // Envia uma requisição para cada empresa
     for (const empresa of empresasDestino) {
         const payload = {
             codigoProduto: infoArvore.codigo,
@@ -105,7 +108,7 @@ async function sendDataToSheets() {
         try {
             await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // BLINDAGEM CONTRA O ERRO 403 DO GOOGLE
+                mode: 'no-cors', // Evita o bloqueio 403 do Google
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(payload)
             });
@@ -113,7 +116,7 @@ async function sendDataToSheets() {
             console.error("Falha ao enviar para: " + empresa, e);
         }
         
-        // Pequeno delay para não sobrecarregar o Google Sheets
+        // Delay para não sobrecarregar o Sheets
         await new Promise(r => setTimeout(r, 300));
     }
 
