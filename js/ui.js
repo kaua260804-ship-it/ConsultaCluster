@@ -10,14 +10,33 @@ function showModalMessage(msg, type) {
     DOM.modalMessage.textContent = msg;
     DOM.modalMessage.className = `modal-message ${type}`;
     DOM.modalMessage.classList.remove('hidden');
-    
-    if (type === 'info') {
-        DOM.modalMessage.style.background = '#e0f2fe';
-        DOM.modalMessage.style.color = '#0369a1';
-    } else {
-        DOM.modalMessage.style.background = '';
-        DOM.modalMessage.style.color = '';
+}
+
+// NOVA FUNÇÃO: Notificação flutuante (Toast)
+function showToast(message, type = 'info') {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        document.body.appendChild(container);
     }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    let icon = 'info';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'alert-circle';
+
+    toast.innerHTML = `<i data-lucide="${icon}"></i> <span>${escapeHtml(message)}</span>`;
+    container.appendChild(toast);
+    if (window.lucide) lucide.createIcons();
+
+    // Remove após 3.5 segundos
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
 }
 
 function renderResults(results, searchedCode) {
@@ -103,9 +122,7 @@ function saveHistory(code) {
 }
 
 function getHistory() { 
-    try { 
-        return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; 
-    } catch(e) { return []; } 
+    try { return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; } catch(e) { return []; } 
 }
 
 function renderHistory() {
