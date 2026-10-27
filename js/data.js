@@ -44,15 +44,12 @@ function buscarProdutoPorCodigo(codigo) {
 
     if (resultadosBrutos.length === 0) return [];
 
-    // AGRUPAMENTO POR TIPO
     const agrupado = new Map();
 
     resultadosBrutos.forEach(row => {
-        // Se não tiver tipo, joga em uma categoria genérica
         const tipoKey = row.tipo ? row.tipo.trim() : 'SEM TIPO DEFINIDO';
 
         if (!agrupado.has(tipoKey)) {
-            // Cria o "esqueleto" do card baseado no primeiro registro
             agrupado.set(tipoKey, {
                 tipo: tipoKey,
                 comprador: row.comprador,
@@ -61,36 +58,22 @@ function buscarProdutoPorCodigo(codigo) {
                 subgrupo: row.subgrupo,
                 produto: row.produto,
                 codigoProduto: row.codigoProduto,
-                empresas: new Set() // Usamos Set para não duplicar empresas
+                empresas: new Set() 
             });
         }
 
-        // Adiciona a empresa na lista daquele tipo
         const cardAtual = agrupado.get(tipoKey);
         if (row.empresa) {
             cardAtual.empresas.add(row.empresa.trim());
         }
     });
 
-    // Transforma o Map em um Array para a tela conseguir desenhar
     return Array.from(agrupado.values()).map(item => ({
         ...item,
-        empresas: Array.from(item.empresas) // Converte o Set de volta para Array
+        empresas: Array.from(item.empresas) 
     }));
 }
 
 function obterDetalhesProdutoModal(codigo) {
     const normalizedCode = normalizeCode(codigo);
-    const infoArvore = AppState.arvore.get(normalizedCode);
-    const registrosBase = AppState.database.filter(r => normalizeCode(r.codigoProduto) === normalizedCode);
-    
-    let nomeProduto = infoArvore ? infoArvore.produto : "Código não encontrado na Árvore";
-    let tipoOriginal = "Produto não cadastrado na Base";
-
-    if (registrosBase.length > 0) {
-        const tiposUnicos = [...new Set(registrosBase.map(r => r.tipo))].filter(Boolean);
-        tipoOriginal = tiposUnicos.length > 0 ? tiposUnicos.join(", ") : "Produto na base, mas sem TIPO definido";
-    }
-
-    return { nomeProduto, tipoOriginal };
-}
+    const infoArvore = AppState
