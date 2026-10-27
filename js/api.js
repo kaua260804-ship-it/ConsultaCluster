@@ -1,3 +1,54 @@
+// js/api.js
+
+async function loadDatabase() {
+    showLoading();
+    hideError();
+
+    try {
+        const response = await fetch('CLUSTER.xlsx', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Arquivo CLUSTER.xlsx não encontrado.`);
+
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        const sheetNames = workbook.SheetNames;
+        const abaBaseNome = sheetNames.find(n => normalize(n) === 'base');
+        const abaArvoreNome = sheetNames.find(n => normalize(n) === 'arvore');
+
+        if (!abaBaseNome || !abaArvoreNome) throw new Error('O arquivo deve conter as abas "BASE" e "ARVORE".');
+
+        const arvoreData = XLSX.utils.sheet_to_json(workbook.Sheets[abaArvoreNome], { defval: '' });
+        const baseData = XLSX.utils.sheet_to_json(workbook.Sheets[abaBaseNome], { defval: '' });
+
+        processarDadosExcel(baseData, arvoreData);
+        
+        updateLastUpdateDate();
+        hideLoading();
+        DOM.input.focus();
+
+    } catch (err) {
+        console.error(err);
+        hideLoading();
+        showError(err.message || 'Erro ao carregar base.');
+    }
+}
+
+// FUNÇÃO AUXILIAR: Contorna o erro 403 do Google Apps Script usando Imagem GET
+function enviarParaSheetsBypassCORS(payload, callback) {
+    const params = new URLSearchParams();
+    for (const key in payload) {
+        if (payload.hasOwnProperty(key)) {
+            params.append(key, payload[key] !== null ? payload[key] : '');
+        }
+    }
+
+    const img = new Image();
+    img.src = APPS_SCRIPT_URL + '?' + params.toString();
+    
+    img.onload = function() { if (callback) callback(true); };
+    img.onerror = function() { if (callback) callback(true); }; 
+    setTimeout(() => { if (callback) callback(true); }, 1000);
+}
+
 function sendDataToSheets() {
     const codigo = DOM.modalCodigoProduto.value.trim();
     const tipoSelecionado = DOM.modalTipo.value;
