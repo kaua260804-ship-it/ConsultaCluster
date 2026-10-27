@@ -66,4 +66,75 @@ function renderCards(results) {
 function populateCompanyFilter(results) {
     const map = new Map();
     results.forEach(r => map.set(normalize(r.empresa), r.empresa));
-   
+    DOM.companyFilter.innerHTML = '<option value="">Todas as empresas</option>';
+    Array.from(map.values()).sort().forEach(emp => {
+        const opt = document.createElement('option'); opt.value = normalize(emp); opt.textContent = displayStr(emp);
+        DOM.companyFilter.appendChild(opt);
+    });
+}
+
+function applyCompanyFilter() {
+    const val = DOM.companyFilter.value;
+    const filtered = val ? AppState.currentResults.filter(r => normalize(r.empresa) === val) : AppState.currentResults;
+    renderCards(filtered);
+    DOM.resultsCount.textContent = `${filtered.length} resultado${filtered.length > 1 ? 's' : ''} encontrado${filtered.length > 1 ? 's' : ''}`;
+}
+
+function saveHistory(code) {
+    let h = getHistory();
+    h = h.filter(i => normalizeCode(i) !== normalizeCode(code));
+    h.unshift(code);
+    h = h.slice(0, AppState.MAX_HISTORY);
+    localStorage.setItem(AppState.STORAGE_KEY, JSON.stringify(h));
+    renderHistory();
+}
+
+function getHistory() { try { return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; } catch(e) { return []; } }
+
+function renderHistory() {
+    const h = getHistory();
+    if (!h.length) return DOM.historyContainer.classList.add('hidden');
+    DOM.historyChips.innerHTML = '';
+    h.forEach(code => {
+        const chip = document.createElement('button'); 
+        chip.className = 'chip'; 
+        chip.type = 'button';
+        chip.innerHTML = `<i data-lucide="clock"></i> <span>${escapeHtml(code)}</span>`;
+        chip.addEventListener('click', () => {
+            DOM.input.value = code;
+            handleSearch();
+        });
+        DOM.historyChips.appendChild(chip);
+    });
+    DOM.historyContainer.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+}
+
+function populateModalSelects() {
+    DOM.modalTipo.innerHTML = '<option value="">Selecione...</option>';
+    DOM.modalAutorizacao.innerHTML = '<option value="">Selecione...</option>';
+    
+    TIPOS_DISPONIVEIS.forEach(tipo => {
+        const opt = document.createElement('option'); opt.value = tipo; opt.textContent = tipo;
+        DOM.modalTipo.appendChild(opt);
+    });
+
+    AUTORIZACOES_DISPONIVEIS.forEach(auth => {
+        const opt = document.createElement('option'); opt.value = auth; opt.textContent = auth;
+        DOM.modalAutorizacao.appendChild(opt);
+    });
+}
+
+function openModal() {
+    DOM.modalCodigoProduto.value = "";
+    DOM.modalNomeProduto.value = "";
+    DOM.modalEmpresa.value = "";
+    DOM.modalTipo.value = "";
+    DOM.modalAutorizacao.value = "";
+    DOM.modalMessage.classList.add('hidden');
+    DOM.modal.classList.remove('hidden');
+}
+
+function closeModal() {
+    DOM.modal.classList.add('hidden');
+}
