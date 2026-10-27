@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.cancelModalBtn.addEventListener('click', closeModal);
     DOM.saveClusterBtn.addEventListener('click', sendDataToSheets);
     
-    // Quando digita o código no modal, busca a descrição na hora
+    // Evento para buscar o nome e tipo original enquanto digita
     DOM.modalCodigoProduto.addEventListener('input', handleModalCodeInput);
 
     // Inicialização
