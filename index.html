@@ -44,6 +44,7 @@
                     </button>
                 </div>
 
+                <!-- Histórico de Buscas -->
                 <div id="historyContainer" class="history-container hidden">
                     <span class="history-label">Buscas recentes:</span>
                     <div id="historyChips" class="history-chips"></div>
@@ -93,7 +94,7 @@
         </div>
     </footer>
 
-    <!-- Modal -->
+    <!-- Modal (Janela Separada para Escolhas) -->
     <div id="clusterModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -119,7 +120,10 @@
         </div>
     </div>
 
-    <!-- Scripts Modularizados (Ordem importa!) -->
+    <!-- IFRAME OCULTO PARA EVITAR O ERRO DE CORS NO POST -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(window.submitted) { window.submitted=false; }"></iframe>
+
+    <!-- Scripts Modularizados -->
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
