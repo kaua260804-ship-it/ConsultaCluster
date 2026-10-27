@@ -150,7 +150,7 @@ function closeModal() {
     DOM.modal.classList.add('hidden');
 }
 
-// Evento para buscar na árvore enquanto digita o código no Modal
+// Busca inteligente no Modal: puxa nome da Árvore e Tipo da Base
 function handleModalCodeInput() {
     const code = DOM.modalCodigoProduto.value.trim();
     if (!code) {
@@ -159,13 +159,22 @@ function handleModalCodeInput() {
         return;
     }
 
-    const info = AppState.arvore.get(normalizeCode(code));
-    if (info) {
-        DOM.modalNomeProduto.value = info.produto;
-        // Como a árvore pode não ter o TIPO, deixamos em branco ou mostramos o que existir
-        DOM.modalTipoOriginal.value = info.tipoOriginal || "Não informado na Árvore";
+    const normalizedCode = normalizeCode(code);
+
+    // 1. Pega o Nome do Produto na Árvore
+    const infoArvore = AppState.arvore.get(normalizedCode);
+    if (infoArvore) {
+        DOM.modalNomeProduto.value = infoArvore.produto;
     } else {
         DOM.modalNomeProduto.value = "Código não encontrado na Árvore";
-        DOM.modalTipoOriginal.value = "—";
+    }
+
+    // 2. Pega os Tipos atuais na BASE
+    const registrosBase = AppState.database.filter(r => normalizeCode(r.codigoProduto) === normalizedCode);
+    if (registrosBase.length > 0) {
+        const tiposUnicos = [...new Set(registrosBase.map(r => r.tipo))].filter(Boolean);
+        DOM.modalTipoOriginal.value = tiposUnicos.length > 0 ? tiposUnicos.join(", ") : "Produto na base, mas sem TIPO definido";
+    } else {
+        DOM.modalTipoOriginal.value = "Produto não cadastrado na Base";
     }
 }
