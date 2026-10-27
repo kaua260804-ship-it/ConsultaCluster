@@ -118,6 +118,10 @@
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
+#productCodeInput::placeholder {
+    color: var(--text-light);
+}
+
 .filter-section {
     margin-bottom: 1.5rem;
 }
@@ -142,6 +146,11 @@
     font-weight: 600;
     color: var(--text-secondary);
     white-space: nowrap;
+}
+
+.filter-wrapper label svg {
+    width: 16px;
+    height: 16px;
 }
 
 #companyFilter {
