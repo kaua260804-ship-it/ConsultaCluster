@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
     DOM.currentYear.textContent = new Date().getFullYear();
 
+    // Eventos de Busca
     DOM.searchBtn.addEventListener('click', handleSearch);
     DOM.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleSearch();
@@ -16,7 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.closeModalBtn.addEventListener('click', closeModal);
     DOM.cancelModalBtn.addEventListener('click', closeModal);
     DOM.saveClusterBtn.addEventListener('click', sendDataToSheets);
+    
+    // Quando digita o código no modal, busca a descrição na hora
+    DOM.modalCodigoProduto.addEventListener('input', handleModalCodeInput);
 
+    // Inicialização
     populateModalSelects();
     renderHistory();
     loadDatabase();
