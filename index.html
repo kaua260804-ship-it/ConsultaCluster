@@ -10,7 +10,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
-    <!-- CSS Modularizado -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
@@ -33,18 +32,26 @@
 
     <main class="main">
         <div class="container">
+            
+            <!-- ÁREA DE BUSCA -->
             <section class="search-section">
                 <div class="search-box">
                     <div class="input-wrapper">
                         <i data-lucide="search" class="input-icon"></i>
                         <input type="text" id="productCodeInput" placeholder="Digite o código do produto..." autocomplete="off" aria-label="Código do Produto">
                     </div>
+                    
+                    <!-- O BOTÃO "BUSCAR" -->
                     <button id="searchButton" class="btn-primary">
                         <i data-lucide="search"></i> Buscar
                     </button>
+
+                    <!-- O BOTÃO "ADICIONAR AO CLUSTER" ISOLADO E SEMPRE VISÍVEL -->
+                    <button id="addManualBtn" class="btn-add-isolated">
+                        <i data-lucide="plus-circle"></i> Adicionar ao Cluster
+                    </button>
                 </div>
 
-                <!-- Histórico de Buscas -->
                 <div id="historyContainer" class="history-container hidden">
                     <span class="history-label">Buscas recentes:</span>
                     <div id="historyChips" class="history-chips"></div>
@@ -94,7 +101,7 @@
         </div>
     </footer>
 
-    <!-- Modal (Janela Separada para Escolhas) -->
+    <!-- MODAL (TELA DE CADASTRO/ADIÇÃO) -->
     <div id="clusterModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -102,15 +109,28 @@
                 <button id="closeModalBtn" class="btn-close"><i data-lucide="x"></i></button>
             </div>
             <div class="modal-body">
-                <p id="modalProductName" class="modal-product-name"></p>
                 <div class="form-group">
-                    <label for="modalTipo">Selecione o TIPO:</label>
+                    <label for="modalCodigoProduto">Código do Produto:</label>
+                    <input type="text" id="modalCodigoProduto" class="form-control" placeholder="Ex: 26766">
+                </div>
+                <div class="form-group">
+                    <label for="modalNomeProduto">Nome do Produto:</label>
+                    <input type="text" id="modalNomeProduto" class="form-control" placeholder="Ex: CHOC MILKA...">
+                </div>
+                <div class="form-group">
+                    <label for="modalEmpresa">Empresa:</label>
+                    <input type="text" id="modalEmpresa" class="form-control" placeholder="Ex: R001-EMP.CALHAU">
+                </div>
+                
+                <div class="form-group">
+                    <label for="modalTipo">Tipo:</label>
                     <select id="modalTipo" class="form-control"></select>
                 </div>
                 <div class="form-group">
-                    <label for="modalAutorizacao">Selecione a AUTORIZAÇÃO:</label>
+                    <label for="modalAutorizacao">Autorização:</label>
                     <select id="modalAutorizacao" class="form-control"></select>
                 </div>
+                
                 <div id="modalMessage" class="modal-message hidden"></div>
             </div>
             <div class="modal-footer">
@@ -120,10 +140,9 @@
         </div>
     </div>
 
-    <!-- IFRAME OCULTO PARA EVITAR O ERRO DE CORS NO POST -->
+    <!-- IFRAME OCULTO PARA EVITAR O ERRO 403/CORS -->
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(window.submitted) { window.submitted=false; }"></iframe>
 
-    <!-- Scripts Modularizados -->
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
