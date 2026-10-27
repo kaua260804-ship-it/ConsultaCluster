@@ -31,7 +31,6 @@ function showModalMessage(msg, type) {
     DOM.modalMessage.classList.remove('hidden');
 }
 
-// FUNÇÃO: Notificação flutuante (Toast)
 function showToast(message, type = 'info') {
     let container = document.getElementById('toastContainer');
     if (!container) {
@@ -51,7 +50,6 @@ function showToast(message, type = 'info') {
     container.appendChild(toast);
     if (window.lucide) lucide.createIcons();
 
-    // Remove após 3.5 segundos
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => toast.remove(), 300);
@@ -73,7 +71,6 @@ function renderResults(results, searchedCode) {
     AppState.currentResults = results;
     populateCompanyFilter(results);
     
-    // O contador agora reflete quantos CARDS (Tipos) foram encontrados
     DOM.resultsCount.textContent = `${results.length} tipo${results.length > 1 ? 's' : ''} de cluster encontrado${results.length > 1 ? 's' : ''}`;
     
     renderCards(results);
@@ -89,7 +86,6 @@ function renderCards(results) {
         const card = document.createElement('div');
         card.className = 'result-card';
         
-        // Junta as empresas com uma vírgula para exibir na tela
         const empresasFormatadas = row.empresas.join(', ');
 
         card.innerHTML = `
@@ -125,11 +121,8 @@ function renderCards(results) {
 
 function populateCompanyFilter(results) {
     const map = new Map();
-    // Como agora o resultado é agrupado por TIPO, precisamos iterar sobre as empresas dentro de cada tipo
     results.forEach(r => {
-        r.empresas.forEach(emp => {
-            map.set(normalize(emp), emp);
-        });
+        r.empresas.forEach(emp => map.set(normalize(emp), emp));
     });
     
     DOM.companyFilter.innerHTML = '<option value="">Todas as empresas</option>';
@@ -150,7 +143,6 @@ function applyCompanyFilter() {
         return;
     }
     
-    // Filtra os agrupamentos que contêm a empresa selecionada
     const filtered = AppState.currentResults.filter(r => 
         r.empresas.some(emp => normalize(emp) === val)
     );
@@ -169,19 +161,12 @@ function saveHistory(code) {
 }
 
 function getHistory() { 
-    try { 
-        return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; 
-    } catch(e) { 
-        return []; 
-    } 
+    try { return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; } catch(e) { return []; } 
 }
 
 function renderHistory() {
     const h = getHistory();
-    if (!h.length) { 
-        DOM.historyContainer.classList.add('hidden'); 
-        return; 
-    }
+    if (!h.length) { DOM.historyContainer.classList.add('hidden'); return; }
     
     DOM.historyChips.innerHTML = '';
     h.forEach(code => {
@@ -199,15 +184,18 @@ function renderHistory() {
     if (window.lucide) lucide.createIcons();
 }
 
-function populateModalSelects() {
-    DOM.modalTipo.innerHTML = '<option value="">Selecione...</option>';
+function populateModalCheckboxes() {
+    DOM.modalTiposContainer.innerHTML = '';
     DOM.modalAutorizacao.innerHTML = '<option value="">Selecione...</option>';
     
     TIPOS_DISPONIVEIS.forEach(tipo => {
-        const opt = document.createElement('option'); 
-        opt.value = tipo; 
-        opt.textContent = tipo;
-        DOM.modalTipo.appendChild(opt);
+        const label = document.createElement('label');
+        label.className = 'checkbox-item';
+        label.innerHTML = `
+            <input type="checkbox" name="modalTipoCheckbox" value="${escapeHtml(tipo)}">
+            <span>${escapeHtml(tipo)}</span>
+        `;
+        DOM.modalTiposContainer.appendChild(label);
     });
 
     AUTORIZACOES_DISPONIVEIS.forEach(auth => {
@@ -222,8 +210,11 @@ function openModal() {
     DOM.modalCodigoProduto.value = "";
     DOM.modalNomeProduto.value = "";
     DOM.modalTipoOriginal.value = "";
-    DOM.modalTipo.value = "";
     DOM.modalAutorizacao.value = "";
+    
+    const checkboxes = DOM.modalTiposContainer.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    
     DOM.modalMessage.classList.add('hidden');
     DOM.modal.classList.remove('hidden');
     DOM.modalCodigoProduto.focus();
