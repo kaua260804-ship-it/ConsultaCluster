@@ -19,9 +19,7 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <div class="header-icon">
-                    <i data-lucide="users"></i>
-                </div>
+                <div class="header-icon"><i data-lucide="users"></i></div>
                 <div>
                     <h1>Consulta de Comprador</h1>
                     <p class="subtitle">Cluster de Produtos</p>
@@ -32,21 +30,14 @@
 
     <main class="main">
         <div class="container">
-            
             <section class="search-section">
                 <div class="search-box">
                     <div class="input-wrapper">
                         <i data-lucide="search" class="input-icon"></i>
                         <input type="text" id="productCodeInput" placeholder="Digite o código do produto..." autocomplete="off" aria-label="Código do Produto">
                     </div>
-                    
-                    <button id="searchButton" class="btn-primary">
-                        <i data-lucide="search"></i> Buscar
-                    </button>
-
-                    <button id="addManualBtn" class="btn-add-isolated">
-                        <i data-lucide="plus-circle"></i> Adicionar ao Cluster
-                    </button>
+                    <button id="searchButton" class="btn-primary"><i data-lucide="search"></i> Buscar</button>
+                    <button id="addManualBtn" class="btn-add-isolated"><i data-lucide="plus-circle"></i> Adicionar ao Cluster</button>
                 </div>
 
                 <div id="historyContainer" class="history-container hidden">
@@ -58,9 +49,7 @@
             <section id="filterSection" class="filter-section hidden">
                 <div class="filter-wrapper">
                     <label for="companyFilter"><i data-lucide="filter"></i> Filtrar por Empresa:</label>
-                    <select id="companyFilter">
-                        <option value="">Todas as empresas</option>
-                    </select>
+                    <select id="companyFilter"><option value="">Todas as empresas</option></select>
                 </div>
             </section>
 
@@ -118,11 +107,17 @@
                     <label for="modalTipoOriginal">Tipo Atual (já pertence):</label>
                     <input type="text" id="modalTipoOriginal" class="form-control" readonly placeholder="—">
                 </div>
+                
                 <hr style="margin: 1rem 0; border: 0; border-top: 1px solid #e2e8f0;">
+                
+                <!-- CAMPO DE TIPO COM CHECKBOXES -->
                 <div class="form-group">
-                    <label for="modalTipo">Adicionar ao TIPO:</label>
-                    <select id="modalTipo" class="form-control"></select>
+                    <label>Adicionar aos TIPOS:</label>
+                    <div id="modalTiposContainer" class="checkbox-group">
+                        <!-- Os checkboxes serão inseridos via JS -->
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label for="modalAutorizacao">Autorização:</label>
                     <select id="modalAutorizacao" class="form-control"></select>
@@ -136,7 +131,6 @@
         </div>
     </div>
 
-    <!-- ORDEM DE CARREGAMENTO CORRETA -->
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/data.js"></script>
