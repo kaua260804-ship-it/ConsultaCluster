@@ -1,5 +1,5 @@
 // js/config.js
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzHGiTKqODW3L4IUeRr4Re-CRwA0uohhseMfYYS41POLMxS4eBz_x2gTiXf2hSRd87O/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/library/d/1Wzn0I0D7Z2PhsNu4mFeewPufZ-Djgy-E0hxxtAyvPGbsVR09rMhxa4Me/2';
 
 const MAPA_EMPRESAS = {
     "EMPORIO G": ["R001-EMP.CALHAU", "R027-EMP.PNS", "R029-EMP.PDA", "R064-EMP.THE"],
