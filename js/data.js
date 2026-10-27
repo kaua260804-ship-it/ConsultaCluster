@@ -40,7 +40,43 @@ function processarDadosExcel(baseData, arvoreData) {
 
 function buscarProdutoPorCodigo(codigo) {
     const searchCode = normalizeCode(codigo);
-    return AppState.database.filter(row => normalizeCode(row.codigoProduto) === searchCode);
+    const resultadosBrutos = AppState.database.filter(row => normalizeCode(row.codigoProduto) === searchCode);
+
+    if (resultadosBrutos.length === 0) return [];
+
+    // AGRUPAMENTO POR TIPO
+    const agrupado = new Map();
+
+    resultadosBrutos.forEach(row => {
+        // Se não tiver tipo, joga em uma categoria genérica
+        const tipoKey = row.tipo ? row.tipo.trim() : 'SEM TIPO DEFINIDO';
+
+        if (!agrupado.has(tipoKey)) {
+            // Cria o "esqueleto" do card baseado no primeiro registro
+            agrupado.set(tipoKey, {
+                tipo: tipoKey,
+                comprador: row.comprador,
+                categoria: row.categoria,
+                grupo: row.grupo,
+                subgrupo: row.subgrupo,
+                produto: row.produto,
+                codigoProduto: row.codigoProduto,
+                empresas: new Set() // Usamos Set para não duplicar empresas
+            });
+        }
+
+        // Adiciona a empresa na lista daquele tipo
+        const cardAtual = agrupado.get(tipoKey);
+        if (row.empresa) {
+            cardAtual.empresas.add(row.empresa.trim());
+        }
+    });
+
+    // Transforma o Map em um Array para a tela conseguir desenhar
+    return Array.from(agrupado.values()).map(item => ({
+        ...item,
+        empresas: Array.from(item.empresas) // Converte o Set de volta para Array
+    }));
 }
 
 function obterDetalhesProdutoModal(codigo) {
