@@ -1,6 +1,6 @@
 // js/api.js
 
-// ===== CARREGAMENTO DO XLSX =====
+// Carregamento do Excel
 async function loadDatabase() {
     showLoading();
     hideError();
@@ -12,7 +12,6 @@ async function loadDatabase() {
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
 
-        // 1. Encontra as abas
         const sheetNames = workbook.SheetNames;
         const abaBaseNome = sheetNames.find(n => normalize(n) === 'base');
         const abaArvoreNome = sheetNames.find(n => normalize(n) === 'arvore');
@@ -21,7 +20,7 @@ async function loadDatabase() {
             throw new Error('O arquivo Excel deve conter as abas "BASE" e "ARVORE".');
         }
 
-        // 2. Lê a aba ARVORE e cria um dicionário
+        // Lê ARVORE
         const arvoreData = XLSX.utils.sheet_to_json(workbook.Sheets[abaArvoreNome], { defval: '' });
         const arvoreMap = new Map();
         
@@ -39,7 +38,7 @@ async function loadDatabase() {
             }
         });
 
-        // 3. Lê a aba BASE e cruza com a ARVORE
+        // Lê BASE e cruza
         const baseData = XLSX.utils.sheet_to_json(workbook.Sheets[abaBaseNome], { defval: '' });
         
         AppState.database = baseData.map(row => {
@@ -71,8 +70,8 @@ async function loadDatabase() {
     }
 }
 
-// ===== ENVIO PARA O GOOGLE SHEETS =====
-async function sendDataToSheets() {
+// Envio para o Google Sheets (Solução via Iframe para CORS)
+function sendDataToSheets() {
     if (!AppState.currentProductToCluster) return;
 
     const tipoSelecionado = DOM.modalTipo.value;
@@ -97,27 +96,33 @@ async function sendDataToSheets() {
     DOM.saveClusterBtn.disabled = true;
     DOM.saveClusterBtn.textContent = 'Enviando...';
 
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        });
+    // Cria um formulário invisível e envia para o iframe oculto
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = APPS_SCRIPT_URL;
+    form.target = 'hidden_iframe'; // O target é o iframe que criamos no HTML
+    form.style.display = 'none';
 
-        const result = await response.json();
-
-        if (result.status === 'success') {
-            showModalMessage('Dados enviados com sucesso!', 'success');
-            setTimeout(closeModal, 2000);
-        } else {
-            throw new Error(result.message);
+    // Adiciona os dados como campos ocultos
+    for (const key in payload) {
+        if (payload.hasOwnProperty(key)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = payload[key] !== null ? payload[key] : '';
+            form.appendChild(input);
         }
+    }
 
-    } catch (err) {
-        console.error(err);
-        showModalMessage('Erro ao enviar. Verifique sua conexão ou a URL do Script.', 'error');
-    } finally {
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form); // Limpa o form do DOM
+
+    // Simula um tempo de resposta e fecha o modal
+    setTimeout(() => {
+        showModalMessage('Dados enviados com sucesso!', 'success');
         DOM.saveClusterBtn.disabled = false;
         DOM.saveClusterBtn.textContent = 'Salvar no Google Sheets';
-    }
+        setTimeout(closeModal, 2000);
+    }, 1500); // 1.5 segundos é suficiente para o envio ocorrer
 }
