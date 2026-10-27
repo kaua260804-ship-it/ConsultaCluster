@@ -1,13 +1,13 @@
 // js/config.js
 
-// ===== CONFIGURAÇÃO DA API =====
+// URL do seu Apps Script (A mesma que você já tem)
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzHGiTKqODW3L4IUeRr4Re-CRwA0uohhseMfYYS41POLMxS4eBz_x2gTiXf2hSRd87O/exec';
 
-// Listas fixas
+// Listas para o Modal
 const TIPOS_DISPONIVEIS = ["EMPORIO G", "EMPORIO M", "EMPORIO P", "MERCEARIA M", "MERCEARIA P"];
 const AUTORIZACOES_DISPONIVEIS = ["CRISTIANE", "COMPRADOR", "RENATO", "PHILLIPP", "LOJA"];
 
-// ===== ESTADO GLOBAL =====
+// Estado Global
 const AppState = {
     database: [],
     isDataLoaded: false,
@@ -17,7 +17,7 @@ const AppState = {
     MAX_HISTORY: 5
 };
 
-// ===== ELEMENTOS DO DOM =====
+// Elementos do DOM (Centralizados)
 const DOM = {
     input: document.getElementById('productCodeInput'),
     searchBtn: document.getElementById('searchButton'),
@@ -36,6 +36,7 @@ const DOM = {
     historyChips: document.getElementById('historyChips'),
     lastUpdate: document.getElementById('lastUpdate'),
     currentYear: document.getElementById('currentYear'),
+    // Modal
     modal: document.getElementById('clusterModal'),
     closeModalBtn: document.getElementById('closeModalBtn'),
     cancelModalBtn: document.getElementById('cancelModalBtn'),
@@ -43,10 +44,12 @@ const DOM = {
     modalProductName: document.getElementById('modalProductName'),
     modalTipo: document.getElementById('modalTipo'),
     modalAutorizacao: document.getElementById('modalAutorizacao'),
-    modalMessage: document.getElementById('modalMessage')
+    modalMessage: document.getElementById('modalMessage'),
+    // Iframe
+    hiddenIframe: document.getElementById('hidden_iframe')
 };
 
-// ===== FUNÇÕES UTILITÁRIAS =====
+// Funções Utilitárias
 function normalize(str) {
     if (str === null || str === undefined) return '';
     return String(str).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
