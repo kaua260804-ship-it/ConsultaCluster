@@ -16,43 +16,11 @@ async function loadDatabase() {
 
         if (!abaBaseNome || !abaArvoreNome) throw new Error('O arquivo deve conter as abas "BASE" e "ARVORE".');
 
-        AppState.arvore.clear();
         const arvoreData = XLSX.utils.sheet_to_json(workbook.Sheets[abaArvoreNome], { defval: '' });
-        
-        arvoreData.forEach(row => {
-            const cleanRow = trimObjKeys(row);
-            const seqProd = normalizeCode(cleanRow['SEQ PROD']);
-            if (seqProd) {
-                AppState.arvore.set(seqProd, {
-                    codigo: cleanRow['SEQ PROD'],
-                    produto: cleanRow['DESC'] || '',
-                    categoria: cleanRow['CATEGORIA'] || '',
-                    grupo: cleanRow['GRUPO'] || '',
-                    subgrupo: cleanRow['SUBGRUPO'] || '',
-                    comprador: cleanRow['COMPRADOR'] || ''
-                });
-            }
-        });
-
         const baseData = XLSX.utils.sheet_to_json(workbook.Sheets[abaBaseNome], { defval: '' });
-        AppState.database = baseData.map(row => {
-            const cleanRow = trimObjKeys(row);
-            const codProduto = normalizeCode(cleanRow['Código Produto'] || cleanRow['Codigo Produto']);
-            const infoArvore = AppState.arvore.get(codProduto) || {};
 
-            return {
-                codigoProduto: cleanRow['Código Produto'] || '',
-                produto: cleanRow['Produto'] || infoArvore.produto || '',
-                empresa: cleanRow['EMPRESA'] || '',
-                tipo: cleanRow['TIPO'] || '',
-                categoria: infoArvore.categoria,
-                grupo: infoArvore.grupo,
-                subgrupo: infoArvore.subgrupo,
-                comprador: infoArvore.comprador
-            };
-        });
-
-        AppState.isDataLoaded = true;
+        processarDadosExcel(baseData, arvoreData);
+        
         updateLastUpdateDate();
         hideLoading();
         DOM.input.focus();
@@ -64,9 +32,8 @@ async function loadDatabase() {
     }
 }
 
-// FUNÇÃO AUXILIAR: Envia os dados via GET usando uma imagem oculta (Contorna o 403)
-function sendPayloadBypassingCORS(payload, callback) {
-    // Transforma o objeto em parâmetros de URL (?chave=valor&chave2=valor2)
+// FUNÇÃO AUXILIAR: Contorna o erro 403 do Google Apps Script usando Imagem GET
+function enviarParaSheetsBypassCORS(payload, callback) {
     const params = new URLSearchParams();
     for (const key in payload) {
         if (payload.hasOwnProperty(key)) {
@@ -74,19 +41,14 @@ function sendPayloadBypassingCORS(payload, callback) {
         }
     }
 
-    // Cria uma imagem invisível na tela com a URL do Apps Script + Parâmetros
     const img = new Image();
     img.src = APPS_SCRIPT_URL + '?' + params.toString();
     
-    // Como não conseguimos ler a resposta da imagem, apenas aguardamos um tempo
     img.onload = function() { if (callback) callback(true); };
-    img.onerror = function() { if (callback) callback(true); }; // Mesmo com erro na imagem, o Google processou.
-
-    // Fallback de segurança para liberar o botão
+    img.onerror = function() { if (callback) callback(true); }; 
     setTimeout(() => { if (callback) callback(true); }, 1000);
 }
 
-// ENVIO PARA O GOOGLE SHEETS
 function sendDataToSheets() {
     const codigo = DOM.modalCodigoProduto.value.trim();
     const tipoSelecionado = DOM.modalTipo.value;
@@ -124,17 +86,14 @@ function sendDataToSheets() {
             categoria: infoArvore.categoria,
             grupo: infoArvore.grupo,
             comprador: infoArvore.comprador,
-            autorizacao: autorizacao,
-            debug: "true" // PARÂMETRO EXTRA PARA DEPURAR NO APPS SCRIPT
+            autorizacao: autorizacao
         };
 
-        // Faz o envio e aguarda 400ms entre cada empresa para não travar
         setTimeout(() => {
-            sendPayloadBypassingCORS(payload, (sucesso) => {
+            enviarParaSheetsBypassCORS(payload, () => {
                 enviados++;
                 showModalMessage(`Enviado para ${empresa} (${enviados}/${empresasDestino.length})...`, 'info');
                 
-                // Quando enviar tudo, exibe mensagem de sucesso e fecha
                 if (enviados === empresasDestino.length) {
                     showModalMessage('Todos os dados foram enviados! Verifique a planilha.', 'success');
                     DOM.saveClusterBtn.disabled = false;
