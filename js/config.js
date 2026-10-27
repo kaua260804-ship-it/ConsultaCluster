@@ -1,7 +1,7 @@
 // js/config.js
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzHGiTKqODW3L4IUeRr4Re-CRwA0uohhseMfYYS41POLMxS4eBz_x2gTiXf2hSRd87O/exec';
 
-// Mapeamento fixo de qual Empresa pertence a qual TIPO
+// Mapeamento de qual Empresa pertence a qual TIPO
 const MAPA_EMPRESAS = {
     "EMPORIO G": ["R001-EMP.CALHAU", "R027-EMP.PNS", "R029-EMP.PDA", "R064-EMP.THE"],
     "EMPORIO M": ["R004-EMP.COHAMA", "R065-EMP.ITZ"],
@@ -15,7 +15,7 @@ const AUTORIZACOES_DISPONIVEIS = ["CRISTIANE", "COMPRADOR", "RENATO", "PHILLIPP"
 
 const AppState = {
     database: [],
-    arvore: new Map(), // Guarda os dados da aba ARVORE para consulta no modal
+    arvore: new Map(), // Guarda os dados da aba ARVORE
     isDataLoaded: false,
     currentResults: [],
     STORAGE_KEY: 'cluster_search_history',
