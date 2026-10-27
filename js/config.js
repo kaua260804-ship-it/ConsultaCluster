@@ -48,7 +48,7 @@ const DOM = {
     modalCodigoProduto: document.getElementById('modalCodigoProduto'), 
     modalNomeProduto: document.getElementById('modalNomeProduto'),     
     modalTipoOriginal: document.getElementById('modalTipoOriginal'),
-    modalTiposContainer: document.getElementById('modalTiposContainer'), 
+    modalTiposContainer: document.getElementById('modalTiposContainer'),
     modalAutorizacao: document.getElementById('modalAutorizacao'),
     modalMessage: document.getElementById('modalMessage')
 };
