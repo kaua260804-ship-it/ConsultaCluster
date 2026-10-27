@@ -76,4 +76,16 @@ function buscarProdutoPorCodigo(codigo) {
 
 function obterDetalhesProdutoModal(codigo) {
     const normalizedCode = normalizeCode(codigo);
-    const infoArvore = AppState
+    const infoArvore = AppState.arvore.get(normalizedCode);
+    const registrosBase = AppState.database.filter(r => normalizeCode(r.codigoProduto) === normalizedCode);
+    
+    let nomeProduto = infoArvore ? infoArvore.produto : "Código não encontrado na Árvore";
+    let tipoOriginal = "Produto não cadastrado na Base";
+
+    if (registrosBase.length > 0) {
+        const tiposUnicos = [...new Set(registrosBase.map(r => r.tipo))].filter(Boolean);
+        tipoOriginal = tiposUnicos.length > 0 ? tiposUnicos.join(", ") : "Produto na base, mas sem TIPO definido";
+    }
+
+    return { nomeProduto, tipoOriginal };
+}
