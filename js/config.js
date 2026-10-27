@@ -40,6 +40,7 @@ const DOM = {
     historyChips: document.getElementById('historyChips'),
     lastUpdate: document.getElementById('lastUpdate'),
     currentYear: document.getElementById('currentYear'),
+    
     modal: document.getElementById('clusterModal'),
     closeModalBtn: document.getElementById('closeModalBtn'),
     cancelModalBtn: document.getElementById('cancelModalBtn'),
@@ -47,7 +48,7 @@ const DOM = {
     modalCodigoProduto: document.getElementById('modalCodigoProduto'), 
     modalNomeProduto: document.getElementById('modalNomeProduto'),     
     modalTipoOriginal: document.getElementById('modalTipoOriginal'),
-    modalTipo: document.getElementById('modalTipo'),
+    modalTiposContainer: document.getElementById('modalTiposContainer'), 
     modalAutorizacao: document.getElementById('modalAutorizacao'),
     modalMessage: document.getElementById('modalMessage')
 };
