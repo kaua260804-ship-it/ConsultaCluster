@@ -33,7 +33,6 @@
     <main class="main">
         <div class="container">
             
-            <!-- ÁREA DE BUSCA -->
             <section class="search-section">
                 <div class="search-box">
                     <div class="input-wrapper">
@@ -41,12 +40,10 @@
                         <input type="text" id="productCodeInput" placeholder="Digite o código do produto..." autocomplete="off" aria-label="Código do Produto">
                     </div>
                     
-                    <!-- BOTÃO BUSCAR -->
                     <button id="searchButton" class="btn-primary">
                         <i data-lucide="search"></i> Buscar
                     </button>
 
-                    <!-- BOTÃO ISOLADO ADICIONAR AO CLUSTER -->
                     <button id="addManualBtn" class="btn-add-isolated">
                         <i data-lucide="plus-circle"></i> Adicionar ao Cluster
                     </button>
@@ -111,18 +108,19 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="modalCodigoProduto">Código do Produto:</label>
-                    <input type="text" id="modalCodigoProduto" class="form-control" placeholder="Ex: 26766">
+                    <input type="text" id="modalCodigoProduto" class="form-control" placeholder="Digite o código e aperte Enter" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="modalNomeProduto">Nome do Produto:</label>
-                    <input type="text" id="modalNomeProduto" class="form-control" placeholder="Ex: CHOC MILKA...">
+                    <input type="text" id="modalNomeProduto" class="form-control" readonly placeholder="Aguardando código...">
                 </div>
                 <div class="form-group">
-                    <label for="modalEmpresa">Empresa:</label>
-                    <input type="text" id="modalEmpresa" class="form-control" placeholder="Ex: R001-EMP.CALHAU">
+                    <label for="modalTipoOriginal">Tipo Atual (já pertence):</label>
+                    <input type="text" id="modalTipoOriginal" class="form-control" readonly placeholder="—">
                 </div>
+                <hr style="margin: 1rem 0; border: 0; border-top: 1px solid #e2e8f0;">
                 <div class="form-group">
-                    <label for="modalTipo">Tipo:</label>
+                    <label for="modalTipo">Adicionar ao TIPO:</label>
                     <select id="modalTipo" class="form-control"></select>
                 </div>
                 <div class="form-group">
@@ -137,9 +135,6 @@
             </div>
         </div>
     </div>
-
-    <!-- IFRAME OCULTO PARA EVITAR ERRO 403/CORS -->
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(window.submitted) { window.submitted=false; }"></iframe>
 
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
