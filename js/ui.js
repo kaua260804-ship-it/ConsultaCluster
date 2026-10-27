@@ -5,7 +5,20 @@ function hideLoading() { DOM.loading.classList.add('hidden'); }
 function showError(msg) { DOM.errorMessage.textContent = msg; DOM.error.classList.remove('hidden'); DOM.loading.classList.add('hidden'); }
 function hideError() { DOM.error.classList.add('hidden'); }
 function updateLastUpdateDate() { DOM.lastUpdate.textContent = `Base carregada em: ${new Date().toLocaleDateString('pt-BR')}`; }
-function showModalMessage(msg, type) { DOM.modalMessage.textContent = msg; DOM.modalMessage.className = `modal-message ${type}`; DOM.modalMessage.classList.remove('hidden'); }
+
+function showModalMessage(msg, type) {
+    DOM.modalMessage.textContent = msg;
+    DOM.modalMessage.className = `modal-message ${type}`;
+    DOM.modalMessage.classList.remove('hidden');
+    
+    if (type === 'info') {
+        DOM.modalMessage.style.background = '#e0f2fe';
+        DOM.modalMessage.style.color = '#0369a1';
+    } else {
+        DOM.modalMessage.style.background = '';
+        DOM.modalMessage.style.color = '';
+    }
+}
 
 function renderResults(results, searchedCode) {
     DOM.noResults.classList.add('hidden');
@@ -92,17 +105,12 @@ function saveHistory(code) {
 function getHistory() { 
     try { 
         return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; 
-    } catch(e) { 
-        return []; 
-    } 
+    } catch(e) { return []; } 
 }
 
 function renderHistory() {
     const h = getHistory();
-    if (!h.length) {
-        DOM.historyContainer.classList.add('hidden');
-        return;
-    }
+    if (!h.length) { DOM.historyContainer.classList.add('hidden'); return; }
     
     DOM.historyChips.innerHTML = '';
     h.forEach(code => {
@@ -146,35 +154,10 @@ function openModal() {
     DOM.modalCodigoProduto.focus();
 }
 
-function closeModal() {
-    DOM.modal.classList.add('hidden');
-}
+function closeModal() { DOM.modal.classList.add('hidden'); }
 
-// Busca inteligente no Modal: puxa nome da Árvore e Tipo da Base
-function handleModalCodeInput() {
-    const code = DOM.modalCodigoProduto.value.trim();
-    if (!code) {
-        DOM.modalNomeProduto.value = "";
-        DOM.modalTipoOriginal.value = "";
-        return;
-    }
-
-    const normalizedCode = normalizeCode(code);
-
-    // 1. Pega o Nome do Produto na Árvore
-    const infoArvore = AppState.arvore.get(normalizedCode);
-    if (infoArvore) {
-        DOM.modalNomeProduto.value = infoArvore.produto;
-    } else {
-        DOM.modalNomeProduto.value = "Código não encontrado na Árvore";
-    }
-
-    // 2. Pega os Tipos atuais na BASE
-    const registrosBase = AppState.database.filter(r => normalizeCode(r.codigoProduto) === normalizedCode);
-    if (registrosBase.length > 0) {
-        const tiposUnicos = [...new Set(registrosBase.map(r => r.tipo))].filter(Boolean);
-        DOM.modalTipoOriginal.value = tiposUnicos.length > 0 ? tiposUnicos.join(", ") : "Produto na base, mas sem TIPO definido";
-    } else {
-        DOM.modalTipoOriginal.value = "Produto não cadastrado na Base";
-    }
+function preencherDadosModal(codigo) {
+    const { nomeProduto, tipoOriginal } = obterDetalhesProdutoModal(codigo);
+    DOM.modalNomeProduto.value = nomeProduto;
+    DOM.modalTipoOriginal.value = tipoOriginal;
 }
