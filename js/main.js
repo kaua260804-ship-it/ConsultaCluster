@@ -1,13 +1,10 @@
 // js/main.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializa Ícones
     if (window.lucide) lucide.createIcons();
-    
-    // Define o ano no footer
     DOM.currentYear.textContent = new Date().getFullYear();
 
-    // ===== EVENTOS DE BUSCA =====
+    // Eventos de Busca
     DOM.searchBtn.addEventListener('click', handleSearch);
     DOM.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleSearch();
@@ -15,18 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.retryBtn.addEventListener('click', loadDatabase);
     DOM.companyFilter.addEventListener('change', applyCompanyFilter);
 
-    // ===== EVENTOS DO MODAL =====
+    // Eventos do Modal
     DOM.closeModalBtn.addEventListener('click', closeModal);
     DOM.cancelModalBtn.addEventListener('click', closeModal);
     DOM.saveClusterBtn.addEventListener('click', sendDataToSheets);
 
-    // ===== INICIALIZAÇÃO =====
+    // Inicialização
     populateModalSelects();
     renderHistory();
     loadDatabase();
 });
 
-// Lógica principal da busca
 function handleSearch() {
     if (!AppState.isDataLoaded) {
         showError('A base de dados ainda não foi carregada. Aguarde ou clique em "Tentar novamente".');
