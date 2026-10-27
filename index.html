@@ -9,7 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- CSS Modularizado -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -103,6 +107,39 @@
             <p class="footer-update" id="lastUpdate">Data da última atualização: --</p>
         </div>
     </footer>
+
+    <!-- Modal para Adicionar ao Cluster -->
+    <div id="clusterModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar ao Cluster</h3>
+                <button id="closeModalBtn" class="btn-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalProductName" class="modal-product-name"></p>
+                
+                <div class="form-group">
+                    <label for="modalTipo">Selecione o TIPO:</label>
+                    <select id="modalTipo" class="form-control">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalAutorizacao">Selecione a AUTORIZAÇÃO:</label>
+                    <select id="modalAutorizacao" class="form-control">
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+                
+                <div id="modalMessage" class="modal-message hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelModalBtn" class="btn-secondary">Cancelar</button>
+                <button id="saveClusterBtn" class="btn-primary">Salvar no Google Sheets</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
