@@ -85,8 +85,87 @@ function saveHistory(code) {
     h = h.filter(i => normalizeCode(i) !== normalizeCode(code));
     h.unshift(code);
     h = h.slice(0, AppState.MAX_HISTORY);
-    localStorage.setItem(AppState.STORAGE_KEY, JSON.stringify(h));
+    try { localStorage.setItem(AppState.STORAGE_KEY, JSON.stringify(h)); } catch(e) {}
     renderHistory();
 }
 
-function getHistory() { try { return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; } catch(e) {
+function getHistory() { 
+    try { 
+        return JSON.parse(localStorage.getItem(AppState.STORAGE_KEY)) || []; 
+    } catch(e) { 
+        return []; 
+    } 
+}
+
+function renderHistory() {
+    const h = getHistory();
+    if (!h.length) {
+        DOM.historyContainer.classList.add('hidden');
+        return;
+    }
+    
+    DOM.historyChips.innerHTML = '';
+    h.forEach(code => {
+        const chip = document.createElement('button'); 
+        chip.className = 'chip'; 
+        chip.type = 'button';
+        chip.innerHTML = `<i data-lucide="clock"></i> <span>${escapeHtml(code)}</span>`;
+        chip.addEventListener('click', () => {
+            DOM.input.value = code;
+            handleSearch();
+        });
+        DOM.historyChips.appendChild(chip);
+    });
+    DOM.historyContainer.classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+}
+
+function populateModalSelects() {
+    DOM.modalTipo.innerHTML = '<option value="">Selecione...</option>';
+    DOM.modalAutorizacao.innerHTML = '<option value="">Selecione...</option>';
+    
+    TIPOS_DISPONIVEIS.forEach(tipo => {
+        const opt = document.createElement('option'); opt.value = tipo; opt.textContent = tipo;
+        DOM.modalTipo.appendChild(opt);
+    });
+
+    AUTORIZACOES_DISPONIVEIS.forEach(auth => {
+        const opt = document.createElement('option'); opt.value = auth; opt.textContent = auth;
+        DOM.modalAutorizacao.appendChild(opt);
+    });
+}
+
+function openModal() {
+    DOM.modalCodigoProduto.value = "";
+    DOM.modalNomeProduto.value = "";
+    DOM.modalTipoOriginal.value = "";
+    DOM.modalTipo.value = "";
+    DOM.modalAutorizacao.value = "";
+    DOM.modalMessage.classList.add('hidden');
+    DOM.modal.classList.remove('hidden');
+    DOM.modalCodigoProduto.focus();
+}
+
+function closeModal() {
+    DOM.modal.classList.add('hidden');
+}
+
+// Evento para buscar na árvore enquanto digita o código no Modal
+function handleModalCodeInput() {
+    const code = DOM.modalCodigoProduto.value.trim();
+    if (!code) {
+        DOM.modalNomeProduto.value = "";
+        DOM.modalTipoOriginal.value = "";
+        return;
+    }
+
+    const info = AppState.arvore.get(normalizeCode(code));
+    if (info) {
+        DOM.modalNomeProduto.value = info.produto;
+        // Como a árvore pode não ter o TIPO, deixamos em branco ou mostramos o que existir
+        DOM.modalTipoOriginal.value = info.tipoOriginal || "Não informado na Árvore";
+    } else {
+        DOM.modalNomeProduto.value = "Código não encontrado na Árvore";
+        DOM.modalTipoOriginal.value = "—";
+    }
+}
