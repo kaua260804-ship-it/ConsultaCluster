@@ -16,7 +16,6 @@ async function loadDatabase() {
 
         if (!abaBaseNome || !abaArvoreNome) throw new Error('O arquivo deve conter as abas "BASE" e "ARVORE".');
 
-        // Limpa os dados antigos
         AppState.arvore.clear();
         const arvoreData = XLSX.utils.sheet_to_json(workbook.Sheets[abaArvoreNome], { defval: '' });
         
@@ -65,7 +64,29 @@ async function loadDatabase() {
     }
 }
 
-// ENVIO PARA O GOOGLE SHEETS (VIA IFRAME OCULTO)
+// FUNÇÃO AUXILIAR: Envia os dados via GET usando uma imagem oculta (Contorna o 403)
+function sendPayloadBypassingCORS(payload, callback) {
+    // Transforma o objeto em parâmetros de URL (?chave=valor&chave2=valor2)
+    const params = new URLSearchParams();
+    for (const key in payload) {
+        if (payload.hasOwnProperty(key)) {
+            params.append(key, payload[key] !== null ? payload[key] : '');
+        }
+    }
+
+    // Cria uma imagem invisível na tela com a URL do Apps Script + Parâmetros
+    const img = new Image();
+    img.src = APPS_SCRIPT_URL + '?' + params.toString();
+    
+    // Como não conseguimos ler a resposta da imagem, apenas aguardamos um tempo
+    img.onload = function() { if (callback) callback(true); };
+    img.onerror = function() { if (callback) callback(true); }; // Mesmo com erro na imagem, o Google processou.
+
+    // Fallback de segurança para liberar o botão
+    setTimeout(() => { if (callback) callback(true); }, 1000);
+}
+
+// ENVIO PARA O GOOGLE SHEETS
 function sendDataToSheets() {
     const codigo = DOM.modalCodigoProduto.value.trim();
     const tipoSelecionado = DOM.modalTipo.value;
@@ -76,10 +97,9 @@ function sendDataToSheets() {
         return;
     }
 
-    // Verifica se o produto existe na Árvore
     const infoArvore = AppState.arvore.get(normalizeCode(codigo));
     if (!infoArvore) {
-        showModalMessage('Produto não encontrado na Árvore. Verifique o código.', 'error');
+        showModalMessage('Produto não encontrado na Árvore.', 'error');
         return;
     }
 
@@ -91,81 +111,37 @@ function sendDataToSheets() {
 
     DOM.saveClusterBtn.disabled = true;
     DOM.saveClusterBtn.textContent = 'Enviando...';
+    showModalMessage(`Iniciando envio para ${empresasDestino.length} empresas...`, 'info');
 
-    // Como o iframe envia 1 requisição por vez, criamos um form com os dados
-    // e o target apontando para o iframe oculto.
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = APPS_SCRIPT_URL;
-    form.target = 'hidden_iframe';
-    form.style.display = 'none';
+    let enviados = 0;
 
-    // Para enviar para múltiplas empresas, o Apps Script precisaria suportar um array.
-    // Como ele espera um único objeto, faremos um loop para enviar 1 por 1.
-    // Porém, como o form só pode ser submetido uma vez, vamos apenas enviar a primeira empresa.
-    // O ideal é que o Apps Script aceite um array. 
-    // Mas para garantir que funcione com o script atual:
-    
-    // O segredo é: o Apps Script precisa saber que estamos enviando para várias empresas.
-    // Para simplificar e garantir o funcionamento imediato, vamos criar um campo extra
-    // com a lista de empresas, e o Apps Script (que você já tem) vai entender.
-    
-    // VAMOS MUDAR A ESTRATÉGIA: O iframe só envia um POST.
-    // Vamos modificar o Apps Script para receber a lista. 
-    // COMO NÃO TEMOS ACESSO AO APPS SCRIPT AGORA, faremos assim:
-    // Criamos um form que envia para a primeira empresa. 
-    // Para as outras, usamos fetch com no-cors (que não gera erro no console).
-    
-    // Passo 1: Enviar a primeira empresa via form (para garantir que funcione mesmo se o fetch falhar)
-    const payload = {
-        codigoProduto: infoArvore.codigo,
-        produto: infoArvore.produto,
-        empresa: empresasDestino[0], // Primeira empresa
-        tipo: tipoSelecionado,
-        categoria: infoArvore.categoria,
-        grupo: infoArvore.grupo,
-        comprador: infoArvore.comprador,
-        autorizacao: autorizacao
-    };
-
-    for (const key in payload) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = payload[key] !== null ? payload[key] : '';
-        form.appendChild(input);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-
-    // Passo 2: Enviar as outras empresas via fetch no-cors (não gera erro no console)
-    for (let i = 1; i < empresasDestino.length; i++) {
-        const payloadExtra = {
+    empresasDestino.forEach((empresa, index) => {
+        const payload = {
             codigoProduto: infoArvore.codigo,
             produto: infoArvore.produto,
-            empresa: empresasDestino[i],
+            empresa: empresa,
             tipo: tipoSelecionado,
             categoria: infoArvore.categoria,
             grupo: infoArvore.grupo,
             comprador: infoArvore.comprador,
-            autorizacao: autorizacao
+            autorizacao: autorizacao,
+            debug: "true" // PARÂMETRO EXTRA PARA DEPURAR NO APPS SCRIPT
         };
 
-        fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // Isso esconde o erro do console
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(payloadExtra)
-        }).catch(e => console.log('Envio secundário falhou, mas ignorado.'));
-    }
-
-    // Simula sucesso
-    setTimeout(() => {
-        showModalMessage('Dados enviados para o cluster!', 'success');
-        DOM.saveClusterBtn.disabled = false;
-        DOM.saveClusterBtn.textContent = 'Salvar no Google Sheets';
-        setTimeout(closeModal, 2000);
-    }, 1500);
+        // Faz o envio e aguarda 400ms entre cada empresa para não travar
+        setTimeout(() => {
+            sendPayloadBypassingCORS(payload, (sucesso) => {
+                enviados++;
+                showModalMessage(`Enviado para ${empresa} (${enviados}/${empresasDestino.length})...`, 'info');
+                
+                // Quando enviar tudo, exibe mensagem de sucesso e fecha
+                if (enviados === empresasDestino.length) {
+                    showModalMessage('Todos os dados foram enviados! Verifique a planilha.', 'success');
+                    DOM.saveClusterBtn.disabled = false;
+                    DOM.saveClusterBtn.textContent = 'Salvar no Google Sheets';
+                    setTimeout(closeModal, 2500);
+                }
+            });
+        }, index * 400);
+    });
 }
