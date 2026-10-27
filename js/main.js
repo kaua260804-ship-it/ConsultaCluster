@@ -6,9 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Eventos de Busca
     DOM.searchBtn.addEventListener('click', handleSearch);
-    DOM.input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') handleSearch();
-    });
+    DOM.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSearch(); });
     DOM.retryBtn.addEventListener('click', loadDatabase);
     DOM.companyFilter.addEventListener('change', applyCompanyFilter);
 
@@ -17,9 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.closeModalBtn.addEventListener('click', closeModal);
     DOM.cancelModalBtn.addEventListener('click', closeModal);
     DOM.saveClusterBtn.addEventListener('click', sendDataToSheets);
-    
-    // Evento para buscar o nome e tipo original enquanto digita
-    DOM.modalCodigoProduto.addEventListener('input', handleModalCodeInput);
+    DOM.modalCodigoProduto.addEventListener('input', (e) => preencherDadosModal(e.target.value.trim()));
 
     // Inicialização
     populateModalSelects();
@@ -34,14 +30,9 @@ function handleSearch() {
     }
 
     const rawCode = DOM.input.value.trim();
-    if (!rawCode) {
-        DOM.input.focus();
-        return;
-    }
+    if (!rawCode) { DOM.input.focus(); return; }
 
-    const searchCode = normalizeCode(rawCode);
-    const results = AppState.database.filter(row => normalizeCode(row.codigoProduto) === searchCode);
-
+    const results = buscarProdutoPorCodigo(rawCode);
     saveHistory(rawCode);
     renderResults(results, rawCode);
 }
