@@ -17,13 +17,14 @@ async function loadDatabase() {
         if (!abaBaseNome || !abaArvoreNome) throw new Error('O arquivo deve conter as abas "BASE" e "ARVORE".');
 
         const arvoreData = XLSX.utils.sheet_to_json(workbook.Sheets[abaArvoreNome], { defval: '' });
-        const arvoreMap = new Map();
         
         arvoreData.forEach(row => {
             const cleanRow = trimObjKeys(row);
             const seqProd = normalizeCode(cleanRow['SEQ PROD']);
             if (seqProd) {
-                arvoreMap.set(seqProd, {
+                AppState.arvore.set(seqProd, {
+                    codigo: cleanRow['SEQ PROD'],
+                    produto: cleanRow['DESC'] || '',
                     categoria: cleanRow['CATEGORIA'] || '',
                     grupo: cleanRow['GRUPO'] || '',
                     subgrupo: cleanRow['SUBGRUPO'] || '',
@@ -36,11 +37,11 @@ async function loadDatabase() {
         AppState.database = baseData.map(row => {
             const cleanRow = trimObjKeys(row);
             const codProduto = normalizeCode(cleanRow['Código Produto'] || cleanRow['Codigo Produto']);
-            const infoArvore = arvoreMap.get(codProduto) || {};
+            const infoArvore = AppState.arvore.get(codProduto) || {};
 
             return {
                 codigoProduto: cleanRow['Código Produto'] || '',
-                produto: cleanRow['Produto'] || '',
+                produto: cleanRow['Produto'] || infoArvore.produto || '',
                 empresa: cleanRow['EMPRESA'] || '',
                 tipo: cleanRow['TIPO'] || '',
                 categoria: infoArvore.categoria,
@@ -62,54 +63,62 @@ async function loadDatabase() {
     }
 }
 
-function sendDataToSheets() {
+// ENVIO PARA O GOOGLE SHEETS (MODO NO-CORS PARA EVITAR ERRO 403)
+async function sendDataToSheets() {
     const codigo = DOM.modalCodigoProduto.value.trim();
-    const produto = DOM.modalNomeProduto.value.trim();
-    const empresa = DOM.modalEmpresa.value.trim();
-    const tipo = DOM.modalTipo.value;
+    const tipoSelecionado = DOM.modalTipo.value;
     const autorizacao = DOM.modalAutorizacao.value;
 
-    if (!codigo || !produto || !empresa || !tipo || !autorizacao) {
-        showModalMessage('Preencha todos os campos obrigatórios.', 'error');
+    if (!codigo || !tipoSelecionado || !autorizacao) {
+        showModalMessage('Selecione o TIPO e a AUTORIZAÇÃO.', 'error');
         return;
     }
 
-    const payload = {
-        codigoProduto: codigo,
-        produto: produto,
-        empresa: empresa,
-        tipo: tipo,
-        categoria: '', 
-        grupo: '',
-        comprador: '',
-        autorizacao: autorizacao
-    };
+    const infoArvore = AppState.arvore.get(normalizeCode(codigo));
+    if (!infoArvore) {
+        showModalMessage('Produto não encontrado na Árvore. Verifique o código.', 'error');
+        return;
+    }
+
+    const empresasDestino = MAPA_EMPRESAS[tipoSelecionado];
+    if (!empresasDestino || empresasDestino.length === 0) {
+        showModalMessage('Nenhuma empresa configurada para este Tipo.', 'error');
+        return;
+    }
 
     DOM.saveClusterBtn.disabled = true;
     DOM.saveClusterBtn.textContent = 'Enviando...';
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = APPS_SCRIPT_URL;
-    form.target = 'hidden_iframe'; 
-    form.style.display = 'none';
+    // O Apps Script vai receber 1 requisição para cada empresa
+    for (const empresa of empresasDestino) {
+        const payload = {
+            codigoProduto: infoArvore.codigo,
+            produto: infoArvore.produto,
+            empresa: empresa,
+            tipo: tipoSelecionado,
+            categoria: infoArvore.categoria,
+            grupo: infoArvore.grupo,
+            comprador: infoArvore.comprador,
+            autorizacao: autorizacao
+        };
 
-    for (const key in payload) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = payload[key];
-        form.appendChild(input);
+        try {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // BLINDAGEM CONTRA O ERRO 403 DO GOOGLE
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) {
+            console.error("Falha ao enviar para: " + empresa, e);
+        }
+        
+        // Pequeno delay para não sobrecarregar o Google Sheets
+        await new Promise(r => setTimeout(r, 300));
     }
 
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
-
-    setTimeout(() => {
-        showModalMessage('Dados enviados com sucesso!', 'success');
-        DOM.saveClusterBtn.disabled = false;
-        DOM.saveClusterBtn.textContent = 'Salvar no Google Sheets';
-        setTimeout(closeModal, 1500);
-    }, 1000);
+    showModalMessage('Dados enviados para as empresas do cluster!', 'success');
+    DOM.saveClusterBtn.disabled = false;
+    DOM.saveClusterBtn.textContent = 'Salvar no Google Sheets';
+    setTimeout(closeModal, 2000);
 }
