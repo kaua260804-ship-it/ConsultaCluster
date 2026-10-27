@@ -33,22 +33,14 @@
 
     <main class="main">
         <div class="container">
-
             <section class="search-section">
                 <div class="search-box">
                     <div class="input-wrapper">
                         <i data-lucide="search" class="input-icon"></i>
-                        <input 
-                            type="text" 
-                            id="productCodeInput" 
-                            placeholder="Digite o código do produto..." 
-                            autocomplete="off"
-                            aria-label="Código do Produto"
-                        >
+                        <input type="text" id="productCodeInput" placeholder="Digite o código do produto..." autocomplete="off" aria-label="Código do Produto">
                     </div>
                     <button id="searchButton" class="btn-primary">
-                        <i data-lucide="search"></i>
-                        Buscar
+                        <i data-lucide="search"></i> Buscar
                     </button>
                 </div>
 
@@ -60,10 +52,7 @@
 
             <section id="filterSection" class="filter-section hidden">
                 <div class="filter-wrapper">
-                    <label for="companyFilter">
-                        <i data-lucide="filter"></i>
-                        Filtrar por Empresa:
-                    </label>
+                    <label for="companyFilter"><i data-lucide="filter"></i> Filtrar por Empresa:</label>
                     <select id="companyFilter">
                         <option value="">Todas as empresas</option>
                     </select>
@@ -79,10 +68,7 @@
                 <i data-lucide="alert-circle"></i>
                 <h2>Erro ao carregar dados</h2>
                 <p id="errorMessage"></p>
-                <button id="retryButton" class="btn-secondary">
-                    <i data-lucide="refresh-cw"></i>
-                    Tentar novamente
-                </button>
+                <button id="retryButton" class="btn-secondary"><i data-lucide="refresh-cw"></i> Tentar novamente</button>
             </div>
 
             <section id="resultsSection" class="results-section hidden">
@@ -97,7 +83,6 @@
                 <h2>Nenhum resultado encontrado</h2>
                 <p id="noResultsMessage">Nenhum comprador encontrado para o código informado.</p>
             </div>
-
         </div>
     </main>
 
@@ -108,7 +93,7 @@
         </div>
     </footer>
 
-    <!-- Modal para Adicionar ao Cluster -->
+    <!-- Modal -->
     <div id="clusterModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -117,21 +102,14 @@
             </div>
             <div class="modal-body">
                 <p id="modalProductName" class="modal-product-name"></p>
-                
                 <div class="form-group">
                     <label for="modalTipo">Selecione o TIPO:</label>
-                    <select id="modalTipo" class="form-control">
-                        <option value="">Carregando...</option>
-                    </select>
+                    <select id="modalTipo" class="form-control"></select>
                 </div>
-
                 <div class="form-group">
                     <label for="modalAutorizacao">Selecione a AUTORIZAÇÃO:</label>
-                    <select id="modalAutorizacao" class="form-control">
-                        <option value="">Carregando...</option>
-                    </select>
+                    <select id="modalAutorizacao" class="form-control"></select>
                 </div>
-                
                 <div id="modalMessage" class="modal-message hidden"></div>
             </div>
             <div class="modal-footer">
@@ -141,6 +119,10 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Scripts Modularizados (Ordem importa!) -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
