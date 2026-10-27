@@ -108,7 +108,7 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="modalCodigoProduto">Código do Produto:</label>
-                    <input type="text" id="modalCodigoProduto" class="form-control" placeholder="Digite o código e aperte Enter" autocomplete="off">
+                    <input type="text" id="modalCodigoProduto" class="form-control" placeholder="Digite o código..." autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="modalNomeProduto">Nome do Produto:</label>
@@ -135,6 +135,9 @@
             </div>
         </div>
     </div>
+
+    <!-- IFRAME OCULTO PARA EVITAR O ERRO 403/CORS -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(window.submitted) { window.submitted=false; }"></iframe>
 
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
