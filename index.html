@@ -136,10 +136,10 @@
         </div>
     </div>
 
-    <!-- IFRAME OCULTO PARA EVITAR O ERRO 403/CORS -->
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(window.submitted) { window.submitted=false; }"></iframe>
-
+    <!-- ORDEM DE CARREGAMENTO CORRETA -->
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/data.js"></script>
     <script src="js/api.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/main.js"></script>
