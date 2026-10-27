@@ -1,6 +1,5 @@
 // js/ui.js
 
-// ===== CONTROLE DE ESTADOS =====
 function showLoading() {
     DOM.loading.classList.remove('hidden');
     DOM.resultsSection.classList.add('hidden');
@@ -30,7 +29,7 @@ function showModalMessage(msg, type) {
     DOM.modalMessage.classList.remove('hidden');
 }
 
-// ===== RENDERIZAÇÃO DA TELA =====
+// --- RENDERIZAÇÃO DOS CARDS ---
 function renderResults(results, searchedCode) {
     DOM.noResults.classList.add('hidden');
     DOM.resultsSection.classList.add('hidden');
@@ -63,6 +62,7 @@ function renderCards(results) {
         const card = document.createElement('div');
         card.className = 'result-card';
 
+        // O botão "Adicionar" fica isolado dentro do card
         card.innerHTML = `
             <div class="card-header">
                 <div class="buyer-icon"><i data-lucide="user"></i></div>
@@ -95,6 +95,7 @@ function renderCards(results) {
                     <span class="info-value ${row.subgrupo ? '' : 'muted'}">${escapeHtml(displayStr(row.subgrupo))}</span>
                 </div>
             </div>
+            <!-- Botão Isolado -->
             <button class="btn-add-cluster" data-index="${index}">
                 <i data-lucide="plus-circle"></i> Adicionar ao Cluster
             </button>
@@ -103,6 +104,7 @@ function renderCards(results) {
         DOM.resultsGrid.appendChild(card);
     });
 
+    // Adiciona o evento de clique no botão recém-criado
     document.querySelectorAll('.btn-add-cluster').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const idx = e.currentTarget.getAttribute('data-index');
@@ -113,7 +115,7 @@ function renderCards(results) {
     if (window.lucide) lucide.createIcons();
 }
 
-// ===== FILTRO =====
+// --- FILTRO ---
 function populateCompanyFilter(results) {
     const empresasMap = new Map();
     results.forEach(row => {
@@ -146,7 +148,7 @@ function updateCount(n) {
     DOM.resultsCount.textContent = `${n} resultado${n > 1 ? 's' : ''} encontrado${n > 1 ? 's' : ''}`;
 }
 
-// ===== HISTÓRICO =====
+// --- HISTÓRICO (Visual Corrigido) ---
 function saveHistory(code) {
     let history = getHistory();
     history = history.filter(item => normalizeCode(item) !== normalizeCode(code));
@@ -172,7 +174,8 @@ function renderHistory() {
         const chip = document.createElement('button');
         chip.className = 'chip';
         chip.type = 'button';
-        chip.innerHTML = `<i data-lucide="clock"></i> ${escapeHtml(code)}`;
+        // Ícone de relógio e texto formatado
+        chip.innerHTML = `<i data-lucide="clock"></i> <span>${escapeHtml(code)}</span>`;
         chip.addEventListener('click', () => {
             DOM.input.value = code;
             handleSearch();
@@ -183,7 +186,7 @@ function renderHistory() {
     if (window.lucide) lucide.createIcons();
 }
 
-// ===== MODAL =====
+// --- MODAL ---
 function populateModalSelects() {
     DOM.modalTipo.innerHTML = '<option value="">Selecione...</option>';
     DOM.modalAutorizacao.innerHTML = '<option value="">Selecione...</option>';
