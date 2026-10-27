@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
     DOM.currentYear.textContent = new Date().getFullYear();
 
-    // Eventos de Busca
     DOM.searchBtn.addEventListener('click', handleSearch);
     DOM.input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleSearch();
@@ -13,11 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.companyFilter.addEventListener('change', applyCompanyFilter);
 
     // Eventos do Modal
+    DOM.addManualBtn.addEventListener('click', openModal); 
     DOM.closeModalBtn.addEventListener('click', closeModal);
     DOM.cancelModalBtn.addEventListener('click', closeModal);
     DOM.saveClusterBtn.addEventListener('click', sendDataToSheets);
 
-    // Inicialização
     populateModalSelects();
     renderHistory();
     loadDatabase();
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function handleSearch() {
     if (!AppState.isDataLoaded) {
-        showError('A base de dados ainda não foi carregada. Aguarde ou clique em "Tentar novamente".');
+        showError('A base de dados ainda não foi carregada. Aguarde.');
         return;
     }
 
